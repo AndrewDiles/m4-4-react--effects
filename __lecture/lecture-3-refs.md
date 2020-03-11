@@ -50,7 +50,7 @@ React offers another way: `useRef`
 
 ```js live=true
 const Form = () => {
-  const firstNameRef = React.useRef(null);
+  const firstNameRef = React.useRef(null);  // right side creates an object with a key named current
 
   React.useEffect(() => {
     firstNameRef.current.focus();

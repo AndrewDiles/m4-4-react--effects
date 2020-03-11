@@ -6,6 +6,10 @@ import Home from './Home';
 import Game from './Game';
 
 function App(props) {
+  // const refIndex = React.useRef(null);
+  // React.useEffect(() => {
+  //   ref.current.focus();
+  // }, []);
   return (
     <>
       <GlobalStyles />
@@ -14,7 +18,9 @@ function App(props) {
           <Home />
         </Route>
         <Route path="/game">
-          <Game />
+          <Game 
+          // refIndex = {refIndex}
+          />
         </Route>
       </Router>
     </>

@@ -137,7 +137,21 @@ const App = () => {
       return JSON.stringify(cart, null, 2);
   }, [cart]);
   
-  // ...
+  // fixed: 
+
+  const App = () => {
+  const [cart, setCart] = React.useState({});
+
+  React.useEffect(() => {
+      fetch('some-url')
+        .then(data => {
+          console.log('Got data:', data);
+          setCart(data);
+        });
+    
+      return JSON.stringify(cart, null, 2); // ?
+  }, []);
+  
 }
 ```
 
@@ -157,7 +171,9 @@ Update the following snippets to make use of `useEffect`
 const App = () => {
   const [count, setCount] = React.useState(0);
 
+  React.useEffect(() => {
   document.title = `You have clicked ${count} times`;
+  }, [count]);
 
   return (
     <button onClick={() => setCount(count + 1)}>
@@ -173,8 +189,12 @@ const App = () => {
 const App = ({ color }) => {
   const [value, setValue] = React.useState(false);
 
-  window.localStorage.setItem('value', value);
+  React.useEffect(() => {
+    window.localStorage.setItem('value', value);
+  }, [value] )
+  React.useEffect(() => {
   window.localStorage.setItem('color', color);
+  }, [color] )
 
   return (
     <div>
@@ -191,11 +211,13 @@ const App = ({ color }) => {
 
 ```js
 const Modal = ({ handleClose }) => {
-  window.addEventListener('keydown', (ev) => {
-    if (ev.code === 'Escape') {
-      handleClose();
-    }
-  });
+  React.useEffect(() => {
+      window.addEventListener('keydown', (ev) => {
+        if (ev.code === 'Escape') {
+          handleClose();
+        }
+    });
+  }, []);
 
   return (
     <div>
@@ -315,9 +337,13 @@ Make sure to do the appropriate cleanup work
 // seTimeout is similar to setInterval...
 const App = () => {
   React.useEffect(() => {
-    window.setTimeout(() => {
+    const timeOut = window.setTimeout(() => {
       console.log('1 second after update!')
-    });
+    }, 1000);
+// can also decalre the function of the timeOut above the useEffect, call the function inside it.
+    return () => {
+      clearTimeout(timeOut);
+    }
   }, [])
 
   return null;
@@ -332,6 +358,28 @@ const App = () => {
     window.addEventListener('keydown', (ev) => {
       console.log('You pressed: ' + ev.code);
     })
+  }, [])
+
+  return null;
+}
+
+// becomes
+
+
+const App = () => {
+  const handlePress = (ev) => {
+    console.log('You pressed: ' + ev.code);
+  }
+  const pressFunction = window.addEventListener('keydown', (ev) => {
+      console.log('You pressed: ' + ev.code);
+    })
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handlePress);
+      
+    return () => {
+        window.removeEventListener('keydown', handlePress);
+    }
   }, [])
 
   return null;
@@ -404,11 +452,48 @@ const App = ({ path }) => {
 ```js
 // refactoring time...
 
+const useMousePos = () => {
+  const [mousePosition, setMousePosition]=
+  React.useState({
+    x: null,
+    y: null
+  });
+  
+  React.useEffect(() => {
+    const handleMousemove = (ev) => {
+      setMousePosition({ x: ev.clientX, y: ev.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMousemove);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMousemove)
+    }
+  }, []);
+  return mousePosition;
+}
+
+const App = ({ path }) => {
+  const mousePosition = useMousePos();
+return (
+    <div>
+      The mouse is at {mousePosition.x}, {mousePosition.y}.
+    </div>
+  )
+}
 ```
 </div>
 </div>
 
+
+
+
 ---
+
+
+
+
+
 
 # Exercises
 
@@ -434,6 +519,37 @@ const App = ({ path }) => {
     </span>
   );
 }
+
+// becomes:
+
+const useFetchIt = (path) => {
+  const [data, setData] = React.useState(null);
+
+    React.useEffect(() => {
+    fetch(path)
+      .then(res => res.json())
+      .then(json => {
+        setData(json);
+      })
+  }, [path])
+  // hook functions are treated as asynch functions by nature and so you can return afterwards
+  return data;
+}
+
+const App = ({ path }) => {
+
+  // React.useEffect(() => {
+  //   let data = useFetchIt(path);
+  // }, [])
+  const data = useFetchIt(path);
+
+  return (
+    <span>
+      Data: {JSON.stringify(data)}
+    </span>
+  );
+}
+
 ```
 
 ---
